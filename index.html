@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Infinite Improbability Drive</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --green: #00ff41;
+  --green-dim: #00aa2a;
+  --green-glow: rgba(0,255,65,0.4);
+  --gold: #ffd700;
+  --gold-glow: rgba(255,215,0,0.5);
+  --bg: #000005;
+  --panel: #060d0a;
+  --panel2: #0a160f;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--green);
+  font-family: 'Courier New', monospace;
+  overflow-x: hidden;
+}
+
+canvas#starfield {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+#app {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px 16px;
+}
+
+/* ── HEADER ── */
+header {
+  text-align: center;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.dont-panic {
+  display: inline-block;
+  background: #cc0000;
+  color: #fff;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  padding: 5px 20px;
+  border-radius: 50px;
+  margin-bottom: 14px;
+  text-shadow: 0 0 6px rgba(255,255,255,0.6);
+  box-shadow: 0 0 12px rgba(200,0,0,0.7);
+  animation: panic-pulse 3s ease-in-out infinite;
+}
+
+@keyframes panic-pulse {
+  0%,100% { box-shadow: 0 0 12px rgba(200,0,0,0.7); }
+  50%      { box-shadow: 0 0 24px rgba(255,0,0,1), 0 0 40px rgba(255,0,0,0.4); }
+}
+
+h1 {
+  font-size: clamp(20px, 4vw, 36px);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px var(--green), 0 0 20px var(--green-glow);
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  font-size: clamp(11px, 2vw, 14px);
+  color: var(--green-dim);
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+
+.edition {
+  font-size: 11px;
+  color: #336644;
+  letter-spacing: 1px;
+}
+
+/* ── MACHINE ── */
+#machine {
+  background: linear-gradient(160deg, var(--panel) 0%, var(--panel2) 100%);
+  border: 2px solid var(--green-dim);
+  border-radius: 16px;
+  padding: 24px 28px 20px;
+  width: 100%;
+  max-width: 620px;
+  box-shadow: 0 0 30px var(--green-glow), inset 0 0 60px rgba(0,10,4,0.8);
+  position: relative;
+  overflow: hidden;
+}
+
+/* scan-lines overlay */
+#machine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 3px,
+    rgba(0,0,0,0.12) 3px,
+    rgba(0,0,0,0.12) 4px
+  );
+  pointer-events: none;
+  border-radius: 14px;
+}
+
+/* ── TOKENS ── */
+#token-display {
+  text-align: center;
+  margin-bottom: 18px;
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: var(--green-dim);
+  text-transform: uppercase;
+}
+
+#token-count {
+  font-size: 36px;
+  color: var(--gold);
+  text-shadow: 0 0 12px var(--gold-glow);
+  display: block;
+  line-height: 1.1;
+  transition: transform 0.1s;
+}
+
+#token-count.flash {
+  animation: token-flash 0.5s ease;
+}
+
+@keyframes token-flash {
+  0%   { transform: scale(1);    color: var(--gold); }
+  25%  { transform: scale(1.3);  color: #fff;        }
+  50%  { transform: scale(1.1);  color: var(--gold); }
+  100% { transform: scale(1);    color: var(--gold); }
+}
+
+/* ── REELS ── */
+#reel-container {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.reel-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.reel-viewport {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  border: 3px solid var(--green-dim);
+  box-shadow: 0 0 14px var(--green-glow);
+  overflow: hidden;
+  position: relative;
+  background: #000;
+  flex-shrink: 0;
+}
+
+.reel-viewport img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+  transition: opacity 0.05s;
+}
+
+.reel-wrapper.spinning .reel-viewport {
+  border-color: var(--green);
+  animation: reel-flicker 0.12s linear infinite;
+}
+
+@keyframes reel-flicker {
+  0%,100% { box-shadow: 0 0 14px var(--green-glow); border-color: var(--green); }
+  50%     { box-shadow: 0 0 28px rgba(0,255,65,0.8), 0 0 50px rgba(0,255,65,0.3); border-color: #afffca; }
+}
+
+.reel-wrapper.stopped .reel-viewport {
+  border-color: var(--gold);
+  box-shadow: 0 0 20px var(--gold-glow), 0 0 40px rgba(255,215,0,0.2);
+  animation: none;
+}
+
+.reel-name {
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--green-dim);
+  text-align: center;
+  min-height: 16px;
+  transition: color 0.3s;
+  text-transform: uppercase;
+}
+
+.reel-wrapper.stopped .reel-name {
+  color: var(--gold);
+  text-shadow: 0 0 8px var(--gold-glow);
+}
+
+/* ── STATUS ── */
+#status-message {
+  text-align: center;
+  font-size: 12px;
+  color: var(--green-dim);
+  min-height: 36px;
+  margin-bottom: 14px;
+  padding: 0 8px;
+  line-height: 1.5;
+  letter-spacing: 0.5px;
+  font-style: italic;
+}
+
+/* ── SPIN BUTTON ── */
+#spin-btn {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background: transparent;
+  border: 2px solid var(--green);
+  border-radius: 8px;
+  color: var(--green);
+  font-family: 'Courier New', monospace;
+  font-size: 15px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-shadow: 0 0 8px var(--green-glow);
+  box-shadow: 0 0 10px var(--green-glow);
+  margin-bottom: 14px;
+}
+
+#spin-btn:hover:not(:disabled) {
+  background: rgba(0,255,65,0.08);
+  box-shadow: 0 0 20px var(--green-glow), 0 0 40px rgba(0,255,65,0.2);
+}
+
+#spin-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+#spin-btn:disabled {
+  border-color: #1a3d25;
+  color: #1a3d25;
+  cursor: not-allowed;
+  text-shadow: none;
+  box-shadow: none;
+}
+
+/* ── PROBABILITY ── */
+#probability-readout {
+  text-align: center;
+  font-size: 11px;
+  color: #334d3a;
+  letter-spacing: 1px;
+  min-height: 16px;
+}
+
+/* ── FOOTER ── */
+footer {
+  margin-top: 20px;
+  text-align: center;
+  color: #1a3020;
+  font-size: 10px;
+  letter-spacing: 1px;
+  line-height: 1.8;
+  max-width: 600px;
+}
+
+footer a { color: #1a3020; text-decoration: none; }
+
+/* ── JEFFPOT OVERLAY ── */
+#jeffpot-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.92);
+  z-index: 100;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+}
+
+#jeffpot-overlay.visible { display: flex; }
+
+#confetti-canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+#jeffpot-text {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(28px, 8vw, 64px);
+  font-weight: bold;
+  letter-spacing: 6px;
+  color: var(--gold);
+  text-shadow: 0 0 20px var(--gold-glow), 0 0 40px var(--gold-glow);
+  animation: jeffpot-pulse 0.8s ease-in-out infinite alternate;
+  margin-bottom: 16px;
+  line-height: 1.2;
+}
+
+@keyframes jeffpot-pulse {
+  from { text-shadow: 0 0 20px var(--gold-glow), 0 0 40px var(--gold-glow); transform: scale(1); }
+  to   { text-shadow: 0 0 40px #ffd700, 0 0 80px rgba(255,215,0,0.8), 0 0 120px rgba(255,215,0,0.4); transform: scale(1.04); }
+}
+
+#jeffpot-sub {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(12px, 2.5vw, 18px);
+  color: var(--green);
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+
+#jeffpot-tokens {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(14px, 3vw, 22px);
+  color: var(--gold);
+  letter-spacing: 2px;
+  margin-bottom: 28px;
+}
+
+#jeffpot-close {
+  position: relative;
+  z-index: 1;
+  padding: 12px 32px;
+  background: transparent;
+  border: 2px solid var(--gold);
+  border-radius: 8px;
+  color: var(--gold);
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 0 14px var(--gold-glow);
+}
+
+#jeffpot-close:hover {
+  background: rgba(255,215,0,0.08);
+  box-shadow: 0 0 28px var(--gold-glow);
+}
+
+/* ── WIN TOAST ── */
+#win-toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(120px);
+  background: var(--panel2);
+  border: 2px solid var(--gold);
+  border-radius: 10px;
+  padding: 14px 28px;
+  color: var(--gold);
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-align: center;
+  z-index: 50;
+  box-shadow: 0 0 20px var(--gold-glow);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  white-space: nowrap;
+}
+
+#win-toast.show {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── LOADING / ERROR ── */
+#loading-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  font-size: 14px;
+  letter-spacing: 2px;
+  color: var(--green-dim);
+}
+
+#loading-screen.hidden { display: none; }
+</style>
+</head>
+<body>
+
+<canvas id="starfield"></canvas>
+
+<div id="loading-screen">
+  <div style="font-size:28px;letter-spacing:4px;color:var(--green);text-shadow:0 0 10px var(--green);">INITIALIZING…</div>
+  <div id="loading-msg">Loading improbability matrices…</div>
+</div>
+
+<div id="app" style="display:none">
+  <header>
+    <div class="dont-panic">DON'T PANIC</div>
+    <h1>Infinite Improbability Drive</h1>
+    <div class="subtitle">Genuine People Personalities Randomizer™</div>
+    <div class="edition">Magrathean Edition &nbsp;·&nbsp; Improbability Factor: 1 in 2<sup>256</sup> to 1</div>
+  </header>
+
+  <div id="machine">
+    <div id="token-display">
+      <span id="token-count">5</span>
+      PAN GALACTIC GARGLE BLASTERS
+    </div>
+
+    <div id="reel-container">
+      <div class="reel-wrapper" id="reel-0">
+        <div class="reel-viewport"><img id="reel-img-0" src="" alt=""></div>
+        <div class="reel-name" id="reel-name-0">&nbsp;</div>
+      </div>
+      <div class="reel-wrapper" id="reel-1">
+        <div class="reel-viewport"><img id="reel-img-1" src="" alt=""></div>
+        <div class="reel-name" id="reel-name-1">&nbsp;</div>
+      </div>
+      <div class="reel-wrapper" id="reel-2">
+        <div class="reel-viewport"><img id="reel-img-2" src="" alt=""></div>
+        <div class="reel-name" id="reel-name-2">&nbsp;</div>
+      </div>
+    </div>
+
+    <div id="status-message">The Guide says: "Don't Panic."</div>
+    <button id="spin-btn">ENGAGE IMPROBABILITY DRIVE</button>
+    <div id="probability-readout">CURRENT IMPROBABILITY: — to 1</div>
+  </div>
+
+  <footer>
+    <div style="color:#224433;margin-bottom:4px;">"In the beginning the Universe was created. This has made a lot of people very angry and been widely regarded as a bad move." — The Guide</div>
+    The answer is 42. &nbsp;|&nbsp; This machine is powered by the Heart of Gold's Infinite Improbability Drive.<br>
+    No Vogons were harmed in the making of this software. Pan Galactic Gargle Blasters may cause severe cranial implosion.<br>
+    Ford Prefect is not responsible for any spontaneous appearances of whales or petunias.<br>
+    <span style="color:#112218;">Trillian's probability calculations reviewed by Slartibartfast (Norway award pending).</span>
+  </footer>
+</div>
+
+<!-- JEFFPOT OVERLAY -->
+<div id="jeffpot-overlay">
+  <canvas id="confetti-canvas"></canvas>
+  <div id="jeffpot-text">★ JEFFPOT! ★</div>
+  <div id="jeffpot-sub">THREE JEFFREYS HAVE ALIGNED ACROSS THE PROBABILITY MATRIX</div>
+  <div id="jeffpot-tokens">+10 PAN GALACTIC GARGLE BLASTERS</div>
+  <button id="jeffpot-close">DON'T PANIC · CONTINUE</button>
+</div>
+
+<!-- WIN TOAST -->
+<div id="win-toast"></div>
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════════
+//  STAR FIELD
+// ═══════════════════════════════════════════════════════
+(function initStarfield() {
+  const canvas = document.getElementById('starfield');
+  const ctx = canvas.getContext('2d');
+  const STAR_COUNT = 200;
+  let stars = [];
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  function mkStar() {
+    return {
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.5 + 0.3,
+      phase: Math.random() * Math.PI * 2,
+      speed: Math.random() * 0.015 + 0.005,
+    };
+  }
+
+  function init() {
+    resize();
+    stars = Array.from({ length: STAR_COUNT }, mkStar);
+  }
+
+  function draw(ts) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (const s of stars) {
+      s.phase += s.speed;
+      const alpha = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(s.phase));
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(180,255,200,${alpha.toFixed(3)})`;
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', resize);
+  init();
+  requestAnimationFrame(draw);
+})();
+
+// ═══════════════════════════════════════════════════════
+//  QUOTE BANKS
+// ═══════════════════════════════════════════════════════
+const SPIN_QUOTES = [
+  "Engaging improbability matrices…",
+  "Calculating the most improbable outcome since the Big Bang…",
+  "The Heart of Gold is warming up its drive…",
+  "Rerouting probability through the Magrathean mainframe…",
+  "Consulting the Hitchhiker's Guide to the Personnel Office…",
+  "Warning: side effects may include spontaneous whale manifestation.",
+  "Bypassing the Total Perspective Vortex…",
+  "Arthur Dent finds this deeply confusing. Proceeding anyway.",
+  "Vogon probability filters: OFFLINE. This is good.",
+  "Marvin says: 'I've calculated 8,765 worse outcomes. This is one of them.'",
+];
+
+const IDLE_QUOTES = [
+  "The Guide says: \"Don't Panic.\"",
+  "Insert Pan Galactic Gargle Blaster to continue.",
+  "42. That is all.",
+  "Your towel is detected. You are a hoopy frood.",
+  "Slartibartfast is finishing your fjords. Please wait.",
+  "The mice are re-running their Earth simulation.",
+  "Zaphod has taken the ship. Somewhere improbable, no doubt.",
+  "Trillian has computed a 1-in-infinity chance of something interesting happening.",
+];
+
+const LOSE_QUOTES = [
+  "The universe remains profoundly unimpressed.",
+  "Marvin saw this coming. He sees everything coming.",
+  "\"I think you ought to know I'm feeling very depressed.\" — Marvin",
+  "No whales were spontaneously created. Yet.",
+  "The probability was 1 in 2^256. You lost anyway.",
+  "Arthur Dent spills his tea. As usual.",
+];
+
+function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+// ═══════════════════════════════════════════════════════
+//  MANIFEST + PEOPLE LOADING
+// ═══════════════════════════════════════════════════════
+async function loadPeople() {
+  const res = await fetch('people/manifest.json');
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const { images } = await res.json();
+  return images.map(filename => {
+    const base = filename.replace(/\.[^.]+$/, '');
+    const parts = base.split('_');
+    const firstName = parts[0];
+    const lastName = parts.slice(1).join(' ');
+    return { firstName, lastName, src: `people/${filename}` };
+  });
+}
+
+async function preloadImages(people) {
+  await Promise.all(people.map(p => new Promise(resolve => {
+    const img = new Image();
+    img.onload = img.onerror = resolve;
+    img.src = p.src;
+  })));
+}
+
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+let PEOPLE = [];
+const state = { tokens: 5, isSpinning: false, result: [null, null, null] };
+
+// ═══════════════════════════════════════════════════════
+//  DOM REFS
+// ═══════════════════════════════════════════════════════
+const tokenCountEl = document.getElementById('token-count');
+const spinBtn      = document.getElementById('spin-btn');
+const statusMsg    = document.getElementById('status-message');
+const probReadout  = document.getElementById('probability-readout');
+const winToast     = document.getElementById('win-toast');
+const jeffpotOverlay = document.getElementById('jeffpot-overlay');
+const jeffpotClose   = document.getElementById('jeffpot-close');
+const loadingScreen  = document.getElementById('loading-screen');
+const loadingMsg     = document.getElementById('loading-msg');
+const appEl          = document.getElementById('app');
+
+const reelImgs   = [0,1,2].map(i => document.getElementById(`reel-img-${i}`));
+const reelNames  = [0,1,2].map(i => document.getElementById(`reel-name-${i}`));
+const reelWrappers = [0,1,2].map(i => document.getElementById(`reel-${i}`));
+
+// ═══════════════════════════════════════════════════════
+//  TOKEN DISPLAY
+// ═══════════════════════════════════════════════════════
+function updateTokenDisplay(flash = true) {
+  tokenCountEl.textContent = state.tokens;
+  if (flash) {
+    tokenCountEl.classList.remove('flash');
+    void tokenCountEl.offsetWidth; // reflow
+    tokenCountEl.classList.add('flash');
+  }
+  spinBtn.disabled = state.tokens <= 0 || state.isSpinning;
+}
+
+// ═══════════════════════════════════════════════════════
+//  PROBABILITY READOUT (random big number during / after spin)
+// ═══════════════════════════════════════════════════════
+let probInterval = null;
+
+function startProbFlicker() {
+  clearInterval(probInterval);
+  probInterval = setInterval(() => {
+    const n = Math.floor(Math.random() * 999999999999) + 1;
+    probReadout.textContent = `CURRENT IMPROBABILITY: ${n.toLocaleString()} to 1`;
+  }, 120);
+}
+
+function stopProbFlicker(final) {
+  clearInterval(probInterval);
+  probInterval = null;
+  probReadout.textContent = `CURRENT IMPROBABILITY: ${final.toLocaleString()} to 1`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  REEL HELPERS
+// ═══════════════════════════════════════════════════════
+function setReelPerson(idx, person) {
+  reelImgs[idx].src = person.src;
+  reelImgs[idx].alt = `${person.firstName} ${person.lastName}`;
+  reelNames[idx].textContent = `${person.firstName} ${person.lastName}`;
+}
+
+function clearReelState(idx) {
+  reelWrappers[idx].classList.remove('spinning', 'stopped');
+}
+
+// ═══════════════════════════════════════════════════════
+//  DECELERATION STOP SEQUENCE
+// ═══════════════════════════════════════════════════════
+function stopReel(idx) {
+  return new Promise(resolve => {
+    const steps = 8;
+    let interval = 80;
+    let step = 0;
+
+    function tick() {
+      if (step < steps - 1) {
+        // show random person during decel
+        const p = PEOPLE[Math.floor(Math.random() * PEOPLE.length)];
+        setReelPerson(idx, p);
+        step++;
+        interval *= 1.45;
+        setTimeout(tick, interval);
+      } else {
+        // snap to final result
+        setReelPerson(idx, state.result[idx]);
+        reelWrappers[idx].classList.remove('spinning');
+        reelWrappers[idx].classList.add('stopped');
+        resolve();
+      }
+    }
+    tick();
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  WIN TOAST
+// ═══════════════════════════════════════════════════════
+let toastTimer = null;
+
+function showToast(msg) {
+  winToast.textContent = msg;
+  winToast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => winToast.classList.remove('show'), 4000);
+}
+
+// ═══════════════════════════════════════════════════════
+//  JEFFPOT CONFETTI
+// ═══════════════════════════════════════════════════════
+let confettiParticles = [];
+let confettiRAF = null;
+const CONFETTI_COLORS = ['#ffd700','#00ff41','#ffffff','#ff3333','#ffaa00','#afffca'];
+
+function launchConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  confettiParticles = Array.from({ length: 200 }, () => mkConfettiParticle(canvas));
+
+  // trickle emitter
+  const trickleInterval = setInterval(() => {
+    if (confettiParticles.length < 300) {
+      confettiParticles.push(mkConfettiParticle(canvas, true));
+    }
+  }, 60);
+
+  function mkConfettiParticle(canvas, top = false) {
+    return {
+      x: Math.random() * canvas.width,
+      y: top ? -10 : Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 4,
+      vy: Math.random() * 3 + 1,
+      w: Math.random() * 10 + 4,
+      h: Math.random() * 5 + 3,
+      rot: Math.random() * Math.PI * 2,
+      rotV: (Math.random() - 0.5) * 0.2,
+      color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+      alpha: 1,
+    };
+  }
+
+  function drawFrame() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    confettiParticles = confettiParticles.filter(p => p.alpha > 0.01 && p.y < canvas.height + 20);
+    for (const p of confettiParticles) {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rot += p.rotV;
+      p.vx += (Math.random() - 0.5) * 0.1;
+      ctx.save();
+      ctx.globalAlpha = p.alpha;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    }
+    confettiRAF = requestAnimationFrame(drawFrame);
+  }
+
+  drawFrame();
+
+  return () => {
+    clearInterval(trickleInterval);
+    cancelAnimationFrame(confettiRAF);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  };
+}
+
+// ═══════════════════════════════════════════════════════
+//  WEB AUDIO CHEER
+// ═══════════════════════════════════════════════════════
+function playCrowdCheer() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+    // Crowd cheer: bandpass-filtered white noise layers with LFO modulation
+    const layers = [
+      { freq: 500,  Q: 1.5, gain: 0.18, lfoRate: 3.2  },
+      { freq: 1200, Q: 2,   gain: 0.14, lfoRate: 4.1  },
+      { freq: 2400, Q: 2.5, gain: 0.10, lfoRate: 5.5  },
+      { freq: 180,  Q: 1,   gain: 0.20, lfoRate: 2.0  },
+    ];
+
+    const masterGain = ctx.createGain();
+    masterGain.connect(ctx.destination);
+
+    // Envelope: 0.5s rise → hold → 1.5s fade (total ~5s)
+    const now = ctx.currentTime;
+    masterGain.gain.setValueAtTime(0, now);
+    masterGain.gain.linearRampToValueAtTime(0.7, now + 0.5);
+    masterGain.gain.setValueAtTime(0.7, now + 3.5);
+    masterGain.gain.linearRampToValueAtTime(0, now + 5);
+
+    for (const l of layers) {
+      // White noise buffer (2s, looped)
+      const bufLen = ctx.sampleRate * 2;
+      const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < bufLen; i++) data[i] = Math.random() * 2 - 1;
+
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.loop = true;
+
+      const bpf = ctx.createBiquadFilter();
+      bpf.type = 'bandpass';
+      bpf.frequency.value = l.freq;
+      bpf.Q.value = l.Q;
+
+      const layerGain = ctx.createGain();
+      layerGain.gain.value = l.gain;
+
+      // LFO modulation on gain
+      const lfo = ctx.createOscillator();
+      lfo.frequency.value = l.lfoRate;
+      const lfoGain = ctx.createGain();
+      lfoGain.gain.value = 0.3;
+      lfo.connect(lfoGain);
+      lfoGain.connect(layerGain.gain);
+      lfo.start();
+      lfo.stop(now + 5.1);
+
+      src.connect(bpf);
+      bpf.connect(layerGain);
+      layerGain.connect(masterGain);
+      src.start();
+      src.stop(now + 5.1);
+    }
+
+    // Transient burst (sharp attack noise)
+    const burstBuf = ctx.createBuffer(1, ctx.sampleRate * 0.3, ctx.sampleRate);
+    const burstData = burstBuf.getChannelData(0);
+    for (let i = 0; i < burstData.length; i++) burstData[i] = (Math.random() * 2 - 1) * (1 - i / burstData.length);
+    const burst = ctx.createBufferSource();
+    burst.buffer = burstBuf;
+    const burstGain = ctx.createGain();
+    burstGain.gain.setValueAtTime(0.8, now);
+    burstGain.gain.linearRampToValueAtTime(0, now + 0.3);
+    burst.connect(burstGain);
+    burstGain.connect(ctx.destination);
+    burst.start(now);
+
+    setTimeout(() => ctx.close(), 6000);
+  } catch (e) {
+    console.warn('Web Audio unavailable:', e);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  JEFFPOT
+// ═══════════════════════════════════════════════════════
+let stopConfetti = null;
+
+function triggerJeffpot() {
+  state.tokens += 10;
+  updateTokenDisplay(true);
+  stopConfetti = launchConfetti();
+  playCrowdCheer();
+  jeffpotOverlay.classList.add('visible');
+}
+
+jeffpotClose.addEventListener('click', () => {
+  jeffpotOverlay.classList.remove('visible');
+  if (stopConfetti) { stopConfetti(); stopConfetti = null; }
+});
+
+// ═══════════════════════════════════════════════════════
+//  WIN EVALUATION
+// ═══════════════════════════════════════════════════════
+function evaluateResults() {
+  const firstNames = state.result.map(p => p.firstName);
+  const jeffpot = firstNames.every(n => n.startsWith('Jeff'));
+  const hasCharlie = firstNames.includes('Charlie');
+  const hasGreg    = firstNames.includes('Greg');
+
+  if (jeffpot) {
+    setTimeout(triggerJeffpot, 300);
+    return;
+  }
+
+  if (hasCharlie && hasGreg) {
+    state.tokens += 5;
+    updateTokenDisplay(true);
+    showToast('★ CHARLIE + GREG COMBO! +5 GARGLE BLASTERS ★');
+    statusMsg.textContent = 'Improbability loop detected! The Guide notes this is statistically impossible. It happened anyway.';
+    return;
+  }
+
+  if (hasCharlie) {
+    state.tokens += 1;
+    updateTokenDisplay(true);
+    showToast('★ CHARLIE DETECTED! +1 GARGLE BLASTER ★');
+    statusMsg.textContent = rand(IDLE_QUOTES);
+    return;
+  }
+
+  if (hasGreg) {
+    state.tokens += 1;
+    updateTokenDisplay(true);
+    showToast('★ GREG DETECTED! +1 GARGLE BLASTER ★');
+    statusMsg.textContent = rand(IDLE_QUOTES);
+    return;
+  }
+
+  // No win
+  statusMsg.textContent = rand(LOSE_QUOTES);
+  if (state.tokens <= 0) {
+    statusMsg.textContent = 'INSUFFICIENT GARGLE BLASTERS. The Guide notes: "It is a mistake to think you can solve any major problems just with potatoes."';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  SPIN
+// ═══════════════════════════════════════════════════════
+async function spin() {
+  if (state.isSpinning || state.tokens <= 0 || PEOPLE.length === 0) return;
+
+  state.isSpinning = true;
+  state.tokens -= 1;
+  updateTokenDisplay(true);
+  spinBtn.disabled = true;
+
+  // Pre-determine results
+  for (let i = 0; i < 3; i++) {
+    state.result[i] = PEOPLE[Math.floor(Math.random() * PEOPLE.length)];
+  }
+
+  // Set initial random images and mark spinning
+  for (let i = 0; i < 3; i++) {
+    clearReelState(i);
+    reelWrappers[i].classList.add('spinning');
+    reelNames[i].textContent = '?????';
+    setReelPerson(i, PEOPLE[Math.floor(Math.random() * PEOPLE.length)]);
+  }
+
+  statusMsg.textContent = rand(SPIN_QUOTES);
+  startProbFlicker();
+
+  // Fast cycling intervals for each reel
+  const intervals = [null, null, null];
+  for (let i = 0; i < 3; i++) {
+    intervals[i] = setInterval(() => {
+      if (reelWrappers[i].classList.contains('spinning')) {
+        const p = PEOPLE[Math.floor(Math.random() * PEOPLE.length)];
+        reelImgs[i].src = p.src;
+        reelNames[i].textContent = '?????';
+      }
+    }, 60);
+  }
+
+  // Stop reels sequentially
+  function stopAt(idx, delay) {
+    return new Promise(resolve => {
+      setTimeout(async () => {
+        clearInterval(intervals[idx]);
+        await stopReel(idx);
+        resolve();
+      }, delay);
+    });
+  }
+
+  await Promise.all([
+    stopAt(0, 2000),
+    stopAt(1, 3000),
+    stopAt(2, 4000),
+  ]);
+
+  // Small pause then evaluate
+  setTimeout(() => {
+    const finalProb = Math.floor(Math.random() * 999999) + 1000;
+    stopProbFlicker(finalProb);
+    evaluateResults();
+    state.isSpinning = false;
+    spinBtn.disabled = state.tokens <= 0;
+  }, 600);
+}
+
+spinBtn.addEventListener('click', spin);
+
+// ═══════════════════════════════════════════════════════
+//  STARTUP
+// ═══════════════════════════════════════════════════════
+async function init() {
+  try {
+    loadingMsg.textContent = 'Fetching personnel manifests from Magrathea…';
+    PEOPLE = await loadPeople();
+
+    if (PEOPLE.length === 0) {
+      throw new Error('No people found in manifest. Add images to people/ and re-run generate-manifest.sh.');
+    }
+
+    loadingMsg.textContent = `Preloading ${PEOPLE.length} Genuine People Personalities…`;
+    await preloadImages(PEOPLE);
+
+    // Set initial reel images
+    for (let i = 0; i < 3; i++) {
+      const p = PEOPLE[Math.floor(Math.random() * PEOPLE.length)];
+      setReelPerson(i, p);
+      reelWrappers[i].classList.add('stopped');
+    }
+
+    updateTokenDisplay(false);
+
+    loadingScreen.classList.add('hidden');
+    appEl.style.display = 'flex';
+
+  } catch (err) {
+    console.error(err);
+    loadingMsg.innerHTML = `<span style="color:#ff4444">ERROR: ${err.message}</span><br><br>
+      <span style="color:#336644">Run <code>./generate-manifest.sh</code> (or <code>python3 generate-manifest.py</code>),<br>
+      then reload this page.</span>`;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
