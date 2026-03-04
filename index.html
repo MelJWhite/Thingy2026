@@ -56,7 +56,7 @@ header {
   display: inline-block;
   background: #cc0000;
   color: #fff;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: bold;
   letter-spacing: 3px;
   padding: 5px 20px;
@@ -88,7 +88,7 @@ h1 {
 }
 
 .edition {
-  font-size: 12px;
+  font-size: 16px;
   color: #5ab87a;
   letter-spacing: 1px;
 }
@@ -305,7 +305,7 @@ footer {
   margin-top: 20px;
   text-align: center;
   color: #4d9966;
-  font-size: 11px;
+  font-size: 16px;
   letter-spacing: 1px;
   line-height: 1.8;
   max-width: 1000px;
@@ -438,7 +438,7 @@ footer a { color: #1a3020; text-decoration: none; }
   padding: 16px 20px;
 }
 #topic-label {
-  font-size: 11px;
+  font-size: 16px;
   color: var(--green-dim);
   letter-spacing: 3px;
   text-transform: uppercase;
@@ -519,7 +519,7 @@ footer a { color: #1a3020; text-decoration: none; }
   </div>
 
   <footer>
-    <div style="color:#5ab87a;margin-bottom:4px;">"All panelists were selected by a provably optimal algorithm. Optimality defined post-hoc." — Committee Minutes, §42</div>
+    <div style="color:#5ab87a;margin-bottom:4px;">"All panelists were selected by a provably optimal algorithm. Optimality defined post-hoc."<br>— Committee Minutes, §42</div>
     Results are not reproducible. This is a feature. &nbsp;|&nbsp; Panel diversity measured in L2 norm.<br>
     No gradient descent was harmed in this selection. Tikhonov regularization applied (λ = 42).<br>
     Reviewer #3 has approved this panel under protest. p-values not corrected for multiple comparisons.<br>
@@ -678,6 +678,7 @@ async function preloadImages(people) {
 let PEOPLE = [];
 let TOPICS = [];
 let pendingTopic = false;
+let spinsSinceJeffpot = 0;
 const state = { tokens: 5, isSpinning: false, result: [null, null, null] };
 
 // ═══════════════════════════════════════════════════════
@@ -1019,6 +1020,7 @@ function evaluateResults() {
   const hasGreg    = firstNames.includes('Greg');
 
   if (jeffpot) {
+    spinsSinceJeffpot = 0;
     pendingTopic = true;
     setTimeout(triggerJeffpot, 300);
     return;
@@ -1077,8 +1079,22 @@ async function spin() {
   spinBtn.disabled = true;
 
   // Pre-determine results
+  spinsSinceJeffpot++;
   for (let i = 0; i < 3; i++) {
     state.result[i] = PEOPLE[Math.floor(Math.random() * PEOPLE.length)];
+  }
+
+  // Loaded JEFFPOT: linearly ramp probability from 0% at spin 10 to 100% at spin 20
+  if (spinsSinceJeffpot >= 10) {
+    const t = Math.min((spinsSinceJeffpot - 10) / 10, 1);
+    if (Math.random() < t) {
+      const jeffs = PEOPLE.filter(p => p.firstName.startsWith('Jeff'));
+      if (jeffs.length > 0) {
+        state.result[0] = rand(jeffs);
+        state.result[1] = rand(jeffs);
+        state.result[2] = rand(jeffs);
+      }
+    }
   }
 
   // Set initial random images and mark spinning

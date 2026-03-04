@@ -1,6 +1,7 @@
 window.PEOPLE_MANIFEST = [
   "Casey_Pelizzari.jpg",
   "Charlie_Bouman.jpg",
+  "Florian_Willomitzer.jpg",
   "Greg_Buzzard.jpg",
   "Jeff_Goldblum.jpg",
   "Jeff_Simmons.jpg",
