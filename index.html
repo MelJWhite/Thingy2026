@@ -420,15 +420,15 @@ footer a { color: #1a3020; text-decoration: none; }
 
 <div id="loading-screen">
   <div style="font-size:28px;letter-spacing:4px;color:var(--green);text-shadow:0 0 10px var(--green);">INITIALIZING…</div>
-  <div id="loading-msg">Loading improbability matrices…</div>
+  <div id="loading-msg">Calibrating panel selection optics…</div>
 </div>
 
 <div id="app" style="display:none">
   <header>
-    <div class="dont-panic">DON'T PANIC</div>
+    <div class="dont-panic">PEER REVIEWED</div>
     <h1>Infinite Improbability Drive</h1>
-    <div class="subtitle">Genuine People Personalities Randomizer™</div>
-    <div class="edition">Magrathean Edition &nbsp;·&nbsp; Improbability Factor: 1 in 2<sup>256</sup> to 1</div>
+    <div class="subtitle">Computational Imaging Panel Selection Engine™</div>
+    <div class="edition">ICCP Edition &nbsp;·&nbsp; p &lt; 0.001 &nbsp;·&nbsp; n = 1 &nbsp;·&nbsp; IRB approval pending</div>
   </header>
 
   <div id="machine">
@@ -452,17 +452,17 @@ footer a { color: #1a3020; text-decoration: none; }
       </div>
     </div>
 
-    <div id="status-message">The Guide says: "Don't Panic."</div>
-    <button id="spin-btn">ENGAGE IMPROBABILITY DRIVE</button>
-    <div id="probability-readout">CURRENT IMPROBABILITY: — to 1</div>
+    <div id="status-message">Panel SNR currently undetermined. Insert approval to begin.</div>
+    <button id="spin-btn">ACQUIRE PANELIST</button>
+    <div id="probability-readout">PANEL OPTIMALITY SCORE: —</div>
   </div>
 
   <footer>
-    <div style="color:#224433;margin-bottom:4px;">"In the beginning the Universe was created. This has made a lot of people very angry and been widely regarded as a bad move." — The Guide</div>
-    The answer is 42. &nbsp;|&nbsp; This machine is powered by the Heart of Gold's Infinite Improbability Drive.<br>
-    No Vogons were harmed in the making of this software. Pan Galactic Gargle Blasters may cause severe cranial implosion.<br>
-    Ford Prefect is not responsible for any spontaneous appearances of whales or petunias.<br>
-    <span style="color:#112218;">Trillian's probability calculations reviewed by Slartibartfast (Norway award pending).</span>
+    <div style="color:#224433;margin-bottom:4px;">"All panelists were selected by a provably optimal algorithm. Optimality defined post-hoc." — Committee Minutes, §42</div>
+    Results are not reproducible. This is a feature. &nbsp;|&nbsp; Panel diversity measured in L2 norm.<br>
+    No gradient descent was harmed in this selection. Tikhonov regularization applied (λ = 42).<br>
+    Reviewer #3 has approved this panel under protest. p-values not corrected for multiple comparisons.<br>
+    <span style="color:#112218;">This work was supported in part by a grant that is currently under review.</span>
   </footer>
 </div>
 
@@ -470,9 +470,9 @@ footer a { color: #1a3020; text-decoration: none; }
 <div id="jeffpot-overlay">
   <canvas id="confetti-canvas"></canvas>
   <div id="jeffpot-text">★ JEFFPOT! ★</div>
-  <div id="jeffpot-sub">THREE JEFFREYS HAVE ALIGNED ACROSS THE PROBABILITY MATRIX</div>
+  <div id="jeffpot-sub">THREE JEFFREYS DETECTED — PANEL IS NOW DIFFRACTION-LIMITED BY JEFFREYS</div>
   <div id="jeffpot-tokens">+10 PAN GALACTIC GARGLE BLASTERS</div>
-  <button id="jeffpot-close">DON'T PANIC · CONTINUE</button>
+  <button id="jeffpot-close">ACCEPT WITH MINOR REVISIONS</button>
 </div>
 
 <!-- WIN TOAST -->
@@ -532,36 +532,38 @@ footer a { color: #1a3020; text-decoration: none; }
 //  QUOTE BANKS
 // ═══════════════════════════════════════════════════════
 const SPIN_QUOTES = [
-  "Engaging improbability matrices…",
-  "Calculating the most improbable outcome since the Big Bang…",
-  "The Heart of Gold is warming up its drive…",
-  "Rerouting probability through the Magrathean mainframe…",
-  "Consulting the Hitchhiker's Guide to the Personnel Office…",
-  "Warning: side effects may include spontaneous whale manifestation.",
-  "Bypassing the Total Perspective Vortex…",
-  "Arthur Dent finds this deeply confusing. Proceeding anyway.",
-  "Vogon probability filters: OFFLINE. This is good.",
-  "Marvin says: 'I've calculated 8,765 worse outcomes. This is one of them.'",
+  "Deconvolving optimal panelist from background noise…",
+  "Applying L2 regularization to candidate pool…",
+  "Sampling the faculty manifold. Aliasing may occur.",
+  "Running blind deconvolution. Emphasis on blind.",
+  "Bayesian posterior suggests this is fine. Probably.",
+  "Compressing candidate space to its sparsest representation…",
+  "Consulting the point spread function of academic relevance…",
+  "Deep learning model is hallucinating credentials. Proceeding anyway.",
+  "Warning: result may exhibit Gibbs ringing near panel boundaries.",
+  "Convergence not guaranteed. Grant deadline is. Running anyway.",
 ];
 
 const IDLE_QUOTES = [
-  "The Guide says: \"Don't Panic.\"",
-  "Insert Pan Galactic Gargle Blaster to continue.",
-  "42. That is all.",
-  "Your towel is detected. You are a hoopy frood.",
-  "Slartibartfast is finishing your fjords. Please wait.",
-  "The mice are re-running their Earth simulation.",
-  "Zaphod has taken the ship. Somewhere improbable, no doubt.",
-  "Trillian has computed a 1-in-infinity chance of something interesting happening.",
+  "Insert Reviewer #3 Approval to continue.",
+  "Panel SNR within acceptable range. Barely.",
+  "All results subject to the Nyquist sampling theorem.",
+  "Your h-index has been noted and disregarded.",
+  "Awaiting Reviewer #3's approval. Estimated wait: 6–8 months.",
+  "Signal detected. Noise also detected. Mostly noise.",
+  "Selection accuracy: ±1 panelist (95% CI).",
+  "Ready to acquire. Funding permitting.",
 ];
 
 const LOSE_QUOTES = [
-  "The universe remains profoundly unimpressed.",
-  "Marvin saw this coming. He sees everything coming.",
-  "\"I think you ought to know I'm feeling very depressed.\" — Marvin",
-  "No whales were spontaneously created. Yet.",
-  "The probability was 1 in 2^256. You lost anyway.",
-  "Arthur Dent spills his tea. As usual.",
+  "Selection rejected: insufficient citations.",
+  "Peer review outcome: major revisions required.",
+  "Reviewer #3 has rejected this configuration.",
+  "Panel SNR too low. Please acquire more Jeffreys.",
+  "Result is below the diffraction limit of statistical significance.",
+  "Convergence not achieved. Try a different learning rate.",
+  "This panel is an artifact of the reconstruction process.",
+  "The committee requests the authors clarify their methodology.",
 ];
 
 function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
@@ -636,14 +638,14 @@ function startProbFlicker() {
   clearInterval(probInterval);
   probInterval = setInterval(() => {
     const n = Math.floor(Math.random() * 999999999999) + 1;
-    probReadout.textContent = `CURRENT IMPROBABILITY: ${n.toLocaleString()} to 1`;
+    probReadout.textContent = `PANEL OPTIMALITY SCORE: ${n.toLocaleString()} (arb. units)`;
   }, 120);
 }
 
 function stopProbFlicker(final) {
   clearInterval(probInterval);
   probInterval = null;
-  probReadout.textContent = `CURRENT IMPROBABILITY: ${final.toLocaleString()} to 1`;
+  probReadout.textContent = `PANEL OPTIMALITY SCORE: ${final.toLocaleString()} (arb. units)`;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -885,15 +887,15 @@ function evaluateResults() {
   if (hasCharlie && hasGreg) {
     state.tokens += 5;
     updateTokenDisplay(true);
-    showToast('★ CHARLIE + GREG COMBO! +5 GARGLE BLASTERS ★');
-    statusMsg.textContent = 'Improbability loop detected! The Guide notes this is statistically impossible. It happened anyway.';
+    showToast('★ CHARLIE + GREG SYNERGY! +5 APPROVALS ★');
+    statusMsg.textContent = 'Rare co-occurrence detected. Correlation ≠ causation, but the committee will allow it.';
     return;
   }
 
   if (hasCharlie) {
     state.tokens += 1;
     updateTokenDisplay(true);
-    showToast('★ CHARLIE DETECTED! +1 GARGLE BLASTER ★');
+    showToast('★ CHARLIE ACQUIRED! +1 APPROVAL ★');
     statusMsg.textContent = rand(IDLE_QUOTES);
     return;
   }
@@ -901,7 +903,7 @@ function evaluateResults() {
   if (hasGreg) {
     state.tokens += 1;
     updateTokenDisplay(true);
-    showToast('★ GREG DETECTED! +1 GARGLE BLASTER ★');
+    showToast('★ GREG ACQUIRED! +1 APPROVAL ★');
     statusMsg.textContent = rand(IDLE_QUOTES);
     return;
   }
@@ -909,7 +911,7 @@ function evaluateResults() {
   // No win
   statusMsg.textContent = rand(LOSE_QUOTES);
   if (state.tokens <= 0) {
-    statusMsg.textContent = 'INSUFFICIENT GARGLE BLASTERS. The Guide notes: "It is a mistake to think you can solve any major problems just with potatoes."';
+    statusMsg.textContent = 'INSUFFICIENT PAN GALACTIC GARGLE BLASTERS. The committee notes: "It is a mistake to think you can solve any major problems just with potatoes." Please acquire additional grant funding.';
   }
 }
 
@@ -986,14 +988,14 @@ spinBtn.addEventListener('click', spin);
 // ═══════════════════════════════════════════════════════
 async function init() {
   try {
-    loadingMsg.textContent = 'Fetching personnel manifests from Magrathea…';
+    loadingMsg.textContent = 'Fetching faculty directory from the cloud…';
     PEOPLE = loadPeople();
 
     if (PEOPLE.length === 0) {
       throw new Error('No people found in manifest. Add images to people/ and re-run generate-manifest.sh.');
     }
 
-    loadingMsg.textContent = `Preloading ${PEOPLE.length} Genuine People Personalities…`;
+    loadingMsg.textContent = `Preloading ${PEOPLE.length} panelist candidates…`;
     await preloadImages(PEOPLE);
 
     // Set initial reel images
