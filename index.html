@@ -93,18 +93,8 @@ h1 {
   letter-spacing: 1px;
 }
 
-/* ── PANEL ROW ── */
-#panel-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-  max-width: 960px;
-}
-
 /* ── MACHINE ── */
 #machine {
-  flex-shrink: 0;
   background: linear-gradient(160deg, var(--panel) 0%, var(--panel2) 100%);
   border: 2px solid var(--green-dim);
   border-radius: 16px;
@@ -428,21 +418,23 @@ footer a { color: #1a3020; text-decoration: none; }
 
 /* ── TOPIC DISPLAY ── */
 #topic-display {
-  flex-shrink: 0;
-  width: 0;
-  padding: 0;
+  width: 100%;
+  max-width: 620px;
+  margin-top: 16px;
+  padding: 0 20px;
   border: 1px solid var(--gold);
   border-radius: 10px;
   background: var(--panel);
   box-shadow: 0 0 12px var(--gold-glow);
   text-align: center;
   opacity: 0;
+  max-height: 0;
   overflow: hidden;
-  transition: opacity 0.6s ease, width 0.6s ease, padding 0.6s ease;
+  transition: opacity 0.6s ease, max-height 0.6s ease, padding 0.6s ease;
 }
 #topic-display.visible {
   opacity: 1;
-  width: 280px;
+  max-height: 200px;
   padding: 16px 20px;
 }
 #topic-label {
@@ -495,7 +487,6 @@ footer a { color: #1a3020; text-decoration: none; }
     <div class="edition">EI Edition &nbsp;·&nbsp; p &lt; 0.001 &nbsp;·&nbsp; n = 1 &nbsp;·&nbsp; IRB approval pending</div>
   </header>
 
-  <div id="panel-row">
   <div id="machine">
     <div id="token-display">
       <span id="token-count">5</span>
@@ -526,7 +517,6 @@ footer a { color: #1a3020; text-decoration: none; }
     <div id="topic-label">TONIGHT'S PANEL DISCUSSION TOPIC</div>
     <div id="topic-text"></div>
   </div>
-  </div><!-- #panel-row -->
 
   <footer>
     <div style="color:#5ab87a;margin-bottom:4px;">"All panelists were selected by a provably optimal algorithm. Optimality defined post-hoc." — Committee Minutes, §42</div>
