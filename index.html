@@ -313,18 +313,39 @@ footer {
 
 footer a { color: #1a3020; text-decoration: none; }
 
+/* ── SECRET JEFFPOT BUTTON ── */
+#secret-jeffpot {
+  position: fixed;
+  bottom: 12px;
+  left: 12px;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  z-index: 999;
+  font-size: 18px;
+  color: #1a3d25;
+  line-height: 1;
+  padding: 0;
+  transition: color 0.3s;
+}
+#secret-jeffpot:hover {
+  color: var(--gold);
+}
+
 /* ── JEFFPOT OVERLAY ── */
 #jeffpot-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.92);
+  background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.7) 45%, rgba(0,0,0,0.96) 100%);
   z-index: 100;
   display: none;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   text-align: center;
-  padding: 20px;
+  padding-bottom: 60px;
 }
 
 #jeffpot-overlay.visible { display: flex; }
@@ -520,12 +541,18 @@ footer a { color: #1a3020; text-decoration: none; }
 
   <footer>
     <div style="color:#5ab87a;margin-bottom:4px;">"All panelists were selected by a provably optimal algorithm. Optimality defined post-hoc."<br>— Committee Minutes, §42</div>
-    Results are not reproducible. This is a feature. &nbsp;|&nbsp; Panel diversity measured in L2 norm.<br>
-    No gradient descent was harmed in this selection. Tikhonov regularization applied (λ = 42).<br>
-    Reviewer #3 has approved this panel under protest. p-values not corrected for multiple comparisons.<br>
+    Results are not reproducible. This is a feature.<br>
+    Panel diversity measured in L2 norm.<br>
+    No gradient descent was harmed in this selection.<br>
+    Tikhonov regularization applied (λ = 42).<br>
+    Reviewer #3 has approved this panel under protest.<br>
+    p-values not corrected for multiple comparisons.<br>
     <span style="color:#4d9966;">This work was supported in part by a grant that is currently under review.</span>
   </footer>
 </div>
+
+<!-- SECRET JEFFPOT BUTTON -->
+<button id="secret-jeffpot" aria-hidden="true">★</button>
 
 <!-- JEFFPOT OVERLAY -->
 <div id="jeffpot-overlay">
@@ -750,7 +777,7 @@ function clearReelState(idx) {
 // ═══════════════════════════════════════════════════════
 //  DECELERATION STOP SEQUENCE
 // ═══════════════════════════════════════════════════════
-function stopReel(idx) {
+function stopReel(idx, pool = PEOPLE) {
   return new Promise(resolve => {
     const steps = 8;
     let interval = 80;
@@ -759,7 +786,7 @@ function stopReel(idx) {
     function tick() {
       if (step < steps - 1) {
         // show random person during decel
-        const p = PEOPLE[Math.floor(Math.random() * PEOPLE.length)];
+        const p = pool[Math.floor(Math.random() * pool.length)];
         setReelPerson(idx, p);
         step++;
         interval *= 1.45;
@@ -950,6 +977,62 @@ function triggerJeffpot() {
   playCrowdCheer();
   jeffpotOverlay.classList.add('visible');
 }
+
+async function secretJeffpot() {
+  if (state.isSpinning) return;
+  const jeffs = PEOPLE.filter(p => p.firstName.startsWith('Jeff'));
+  if (jeffs.length === 0) return;
+
+  state.isSpinning = true;
+  spinBtn.disabled = true;
+
+  for (let i = 0; i < 3; i++) {
+    state.result[i] = rand(jeffs);
+  }
+
+  for (let i = 0; i < 3; i++) {
+    clearReelState(i);
+    reelWrappers[i].classList.add('spinning');
+    reelNames[i].textContent = '?????';
+    setReelPerson(i, PEOPLE[Math.floor(Math.random() * PEOPLE.length)]);
+  }
+
+  statusMsg.textContent = rand(SPIN_QUOTES);
+  startProbFlicker();
+
+  const intervals = [null, null, null];
+  for (let i = 0; i < 3; i++) {
+    intervals[i] = setInterval(() => {
+      if (reelWrappers[i].classList.contains('spinning')) {
+        reelImgs[i].src = jeffs[Math.floor(Math.random() * jeffs.length)].src;
+        reelNames[i].textContent = '?????';
+      }
+    }, 60);
+  }
+
+  function stopAt(idx, delay) {
+    return new Promise(resolve => {
+      setTimeout(async () => {
+        clearInterval(intervals[idx]);
+        await stopReel(idx, jeffs);
+        resolve();
+      }, delay);
+    });
+  }
+
+  await Promise.all([stopAt(0, 2000), stopAt(1, 3000), stopAt(2, 4000)]);
+
+  setTimeout(() => {
+    stopProbFlicker(Math.floor(Math.random() * 999999) + 1000);
+    spinsSinceJeffpot = 0;
+    pendingTopic = true;
+    triggerJeffpot();
+    state.isSpinning = false;
+    spinBtn.disabled = state.tokens <= 0;
+  }, 600);
+}
+
+document.getElementById('secret-jeffpot').addEventListener('click', secretJeffpot);
 
 jeffpotClose.addEventListener('click', () => {
   jeffpotOverlay.classList.remove('visible');
