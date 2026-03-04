@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Infinite Improbability Drive</title>
 <script src="people/manifest.js"></script>
+<script src="topics.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -415,6 +416,42 @@ footer a { color: #1a3020; text-decoration: none; }
   transform: translateX(-50%) translateY(0);
 }
 
+/* ── TOPIC DISPLAY ── */
+#topic-display {
+  width: 100%;
+  max-width: 620px;
+  margin-top: 16px;
+  padding: 0 20px;
+  border: 1px solid var(--gold);
+  border-radius: 10px;
+  background: var(--panel);
+  box-shadow: 0 0 12px var(--gold-glow);
+  text-align: center;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: opacity 0.6s ease, max-height 0.6s ease, padding 0.6s ease;
+}
+#topic-display.visible {
+  opacity: 1;
+  max-height: 200px;
+  padding: 16px 20px;
+}
+#topic-label {
+  font-size: 11px;
+  color: var(--green-dim);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+#topic-text {
+  font-size: 19px;
+  color: var(--green);
+  text-shadow: 0 0 8px var(--green-glow);
+  line-height: 1.5;
+  font-style: italic;
+}
+
 /* ── LOADING / ERROR ── */
 #loading-screen {
   position: fixed;
@@ -474,6 +511,11 @@ footer a { color: #1a3020; text-decoration: none; }
     <div id="status-message">Panel SNR currently undetermined. Insert approval to begin.</div>
     <button id="spin-btn">ACQUIRE PANELIST</button>
     <div id="probability-readout">PANEL OPTIMALITY SCORE: —</div>
+  </div>
+
+  <div id="topic-display">
+    <div id="topic-label">TONIGHT'S PANEL DISCUSSION TOPIC</div>
+    <div id="topic-text"></div>
   </div>
 
   <footer>
@@ -588,6 +630,25 @@ const LOSE_QUOTES = [
 function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
 // ═══════════════════════════════════════════════════════
+//  TOPICS
+// ═══════════════════════════════════════════════════════
+function loadTopics() {
+  if (window.PANEL_TOPICS && window.PANEL_TOPICS.length > 0) {
+    return window.PANEL_TOPICS;
+  }
+  // Fallback if topics.js not generated yet
+  return [
+    "Topics file not found. Run generate-manifest.sh and reload.",
+  ];
+}
+
+function showTopic(override) {
+  if (!override && TOPICS.length === 0) return;
+  topicText.textContent = '\u201c' + (override || rand(TOPICS)) + '\u201d';
+  topicDisplay.classList.add('visible');
+}
+
+// ═══════════════════════════════════════════════════════
 //  MANIFEST + PEOPLE LOADING
 // ═══════════════════════════════════════════════════════
 function loadPeople() {
@@ -615,6 +676,8 @@ async function preloadImages(people) {
 //  STATE
 // ═══════════════════════════════════════════════════════
 let PEOPLE = [];
+let TOPICS = [];
+let pendingTopic = false;
 const state = { tokens: 5, isSpinning: false, result: [null, null, null] };
 
 // ═══════════════════════════════════════════════════════
@@ -630,6 +693,9 @@ const jeffpotClose   = document.getElementById('jeffpot-close');
 const loadingScreen  = document.getElementById('loading-screen');
 const loadingMsg     = document.getElementById('loading-msg');
 const appEl          = document.getElementById('app');
+
+const topicDisplay = document.getElementById('topic-display');
+const topicText    = document.getElementById('topic-text');
 
 const reelImgs   = [0,1,2].map(i => document.getElementById(`reel-img-${i}`));
 const reelNames  = [0,1,2].map(i => document.getElementById(`reel-name-${i}`));
@@ -887,6 +953,10 @@ function triggerJeffpot() {
 jeffpotClose.addEventListener('click', () => {
   jeffpotOverlay.classList.remove('visible');
   if (stopConfetti) { stopConfetti(); stopConfetti = null; }
+  if (pendingTopic) {
+    pendingTopic = false;
+    showTopic('Discuss the societal implications of a Jeff singularity.');
+  }
 });
 
 // ═══════════════════════════════════════════════════════
@@ -949,13 +1019,14 @@ function evaluateResults() {
   const hasGreg    = firstNames.includes('Greg');
 
   if (jeffpot) {
+    pendingTopic = true;
     setTimeout(triggerJeffpot, 300);
     return;
   }
 
   const triple = state.result.every(p => p.firstName === state.result[0].firstName);
   if (triple) {
-    setTimeout(() => triggerTriple(state.result[0]), 300);
+    setTimeout(() => { triggerTriple(state.result[0]); showTopic(); }, 300);
     return;
   }
 
@@ -964,6 +1035,7 @@ function evaluateResults() {
     updateTokenDisplay(true);
     showToast('★ CHARLIE + GREG SYNERGY! +5 PAN GALACTIC GARGLE BLASTERS ★');
     statusMsg.textContent = 'Rare co-occurrence detected. Correlation ≠ causation, but the committee will allow it.';
+    showTopic();
     return;
   }
 
@@ -972,6 +1044,7 @@ function evaluateResults() {
     updateTokenDisplay(true);
     showToast('★ CHARLIE ACQUIRED! +1 PAN GALACTIC GARGLE BLASTER ★');
     statusMsg.textContent = rand(IDLE_QUOTES);
+    showTopic();
     return;
   }
 
@@ -980,6 +1053,7 @@ function evaluateResults() {
     updateTokenDisplay(true);
     showToast('★ GREG ACQUIRED! +1 PAN GALACTIC GARGLE BLASTER ★');
     statusMsg.textContent = rand(IDLE_QUOTES);
+    showTopic();
     return;
   }
 
@@ -988,6 +1062,7 @@ function evaluateResults() {
   if (state.tokens <= 0) {
     statusMsg.textContent = 'INSUFFICIENT PAN GALACTIC GARGLE BLASTERS. The committee notes: "It is a mistake to think you can solve any major problems just with potatoes." Please acquire additional grant funding.';
   }
+  showTopic();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1065,6 +1140,7 @@ async function init() {
   try {
     loadingMsg.textContent = 'Fetching faculty directory from the cloud…';
     PEOPLE = loadPeople();
+    TOPICS = loadTopics();
 
     if (PEOPLE.length === 0) {
       throw new Error('No people found in manifest. Add images to people/ and re-run generate-manifest.sh.');

@@ -30,3 +30,28 @@ with open(output_path, 'w') as f:
     f.write('];\n')
 
 print(f"Written: {output_path} ({len(images)} images)")
+
+# ── topics.js ──────────────────────────────────────────
+topics_txt = os.path.join(script_dir, 'topics.txt')
+topics_out = os.path.join(script_dir, 'topics.js')
+
+if not os.path.isfile(topics_txt):
+    print("Warning: topics.txt not found, skipping topics.js", file=sys.stderr)
+else:
+    topics = []
+    with open(topics_txt, 'r') as tf:
+        for line in tf:
+            line = line.rstrip('\n')
+            if not line or line.startswith('#'):
+                continue
+            topics.append(line)
+
+    with open(topics_out, 'w') as f:
+        f.write('window.PANEL_TOPICS = [\n')
+        for i, topic in enumerate(topics):
+            escaped = topic.replace('\\', '\\\\').replace('"', '\\"')
+            comma = ',' if i < len(topics) - 1 else ''
+            f.write(f'  "{escaped}"{comma}\n')
+        f.write('];\n')
+
+    print(f"Written: {topics_out} ({len(topics)} topics)")

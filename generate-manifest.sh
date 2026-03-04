@@ -35,3 +35,35 @@ fi
 } > "$OUTPUT"
 
 echo "Written: $OUTPUT (${#images[@]} images)"
+
+# ── topics.js ──────────────────────────────────────────
+TOPICS_TXT="$(dirname "$0")/topics.txt"
+TOPICS_OUT="$(dirname "$0")/topics.js"
+
+if [ ! -f "$TOPICS_TXT" ]; then
+    echo "Warning: topics.txt not found, skipping topics.js" >&2
+else
+    topics=()
+    while IFS= read -r line; do
+        # Skip blank lines and # comments
+        [[ -z "$line" || "$line" == \#* ]] && continue
+        topics+=("$line")
+    done < "$TOPICS_TXT"
+
+    {
+        printf 'window.PANEL_TOPICS = [\n'
+        for i in "${!topics[@]}"; do
+            # Escape backslashes then double-quotes
+            escaped="${topics[$i]//\\/\\\\}"
+            escaped="${escaped//\"/\\\"}"
+            if [ $i -lt $(( ${#topics[@]} - 1 )) ]; then
+                printf '  "%s",\n' "$escaped"
+            else
+                printf '  "%s"\n' "$escaped"
+            fi
+        done
+        printf '];\n'
+    } > "$TOPICS_OUT"
+
+    echo "Written: $TOPICS_OUT (${#topics[@]} topics)"
+fi
