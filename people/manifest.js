@@ -6,6 +6,6 @@ window.PEOPLE_MANIFEST = [
   "Jeff_Simmons.jpg",
   "Jeffrey_Utley.jpg",
   "Laura_Waller.jpg",
-  "Sergi_Goma.jpg",
+  "Sergio_Goma.jpg",
   "Stanley_Chan.jpg"
 ];
