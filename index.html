@@ -10,7 +10,7 @@
 
 :root {
   --green: #00ff41;
-  --green-dim: #00aa2a;
+  --green-dim: #00cc35;
   --green-glow: rgba(0,255,65,0.4);
   --gold: #ffd700;
   --gold-glow: rgba(255,215,0,0.5);
@@ -80,15 +80,15 @@ h1 {
 }
 
 .subtitle {
-  font-size: clamp(11px, 2vw, 14px);
+  font-size: clamp(13px, 2vw, 16px);
   color: var(--green-dim);
   letter-spacing: 2px;
   margin-bottom: 4px;
 }
 
 .edition {
-  font-size: 11px;
-  color: #336644;
+  font-size: 12px;
+  color: #5ab87a;
   letter-spacing: 1px;
 }
 
@@ -125,7 +125,7 @@ h1 {
 #token-display {
   text-align: center;
   margin-bottom: 18px;
-  font-size: 13px;
+  font-size: 15px;
   letter-spacing: 2px;
   color: var(--green-dim);
   text-transform: uppercase;
@@ -205,7 +205,7 @@ h1 {
 }
 
 .reel-name {
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1px;
   color: var(--green-dim);
   text-align: center;
@@ -219,10 +219,30 @@ h1 {
   text-shadow: 0 0 8px var(--gold-glow);
 }
 
+.reel-wrapper.triple-win .reel-viewport {
+  animation: triple-flash 0.18s ease infinite;
+}
+
+@keyframes triple-flash {
+  0%,100% { border-color: var(--green); box-shadow: 0 0 24px var(--green-glow), 0 0 50px rgba(0,255,65,0.3); }
+  50%     { border-color: #ffffff;      box-shadow: 0 0 50px rgba(255,255,255,0.9), 0 0 90px var(--green-glow); }
+}
+
+.reel-wrapper.triple-win .reel-name {
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255,255,255,0.8);
+  animation: triple-flash-name 0.18s ease infinite;
+}
+
+@keyframes triple-flash-name {
+  0%,100% { color: var(--green); }
+  50%     { color: #ffffff; }
+}
+
 /* ── STATUS ── */
 #status-message {
   text-align: center;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--green-dim);
   min-height: 36px;
   margin-bottom: 14px;
@@ -273,8 +293,8 @@ h1 {
 /* ── PROBABILITY ── */
 #probability-readout {
   text-align: center;
-  font-size: 11px;
-  color: #334d3a;
+  font-size: 12px;
+  color: #5ab87a;
   letter-spacing: 1px;
   min-height: 16px;
 }
@@ -283,8 +303,8 @@ h1 {
 footer {
   margin-top: 20px;
   text-align: center;
-  color: #1a3020;
-  font-size: 10px;
+  color: #4d9966;
+  font-size: 11px;
   letter-spacing: 1px;
   line-height: 1.8;
   max-width: 600px;
@@ -458,11 +478,11 @@ footer a { color: #1a3020; text-decoration: none; }
   </div>
 
   <footer>
-    <div style="color:#224433;margin-bottom:4px;">"All panelists were selected by a provably optimal algorithm. Optimality defined post-hoc." — Committee Minutes, §42</div>
+    <div style="color:#5ab87a;margin-bottom:4px;">"All panelists were selected by a provably optimal algorithm. Optimality defined post-hoc." — Committee Minutes, §42</div>
     Results are not reproducible. This is a feature. &nbsp;|&nbsp; Panel diversity measured in L2 norm.<br>
     No gradient descent was harmed in this selection. Tikhonov regularization applied (λ = 42).<br>
     Reviewer #3 has approved this panel under protest. p-values not corrected for multiple comparisons.<br>
-    <span style="color:#112218;">This work was supported in part by a grant that is currently under review.</span>
+    <span style="color:#4d9966;">This work was supported in part by a grant that is currently under review.</span>
   </footer>
 </div>
 
@@ -871,6 +891,56 @@ jeffpotClose.addEventListener('click', () => {
 });
 
 // ═══════════════════════════════════════════════════════
+//  TRIPLE SOUND + TRIGGER
+// ═══════════════════════════════════════════════════════
+function playTripleSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5 E5 G5 C6
+    notes.forEach((freq, i) => {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const t = ctx.currentTime + i * 0.13;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.28, t + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.5);
+    });
+    setTimeout(() => ctx.close(), 2000);
+  } catch(e) { console.warn('Audio unavailable:', e); }
+}
+
+const TRIPLE_STATUS = [
+  n => `Three ${n}s walk into a panel. The moderator has questions.`,
+  n => `Triple ${n} configuration. Panel coherence: MAXIMUM.`,
+  n => `The drive has produced three ${n}s. This will be the best panel.`,
+  n => `Three ${n}s detected. Peer review completed in record time.`,
+];
+
+function triggerTriple(person) {
+  state.tokens += 5;
+  updateTokenDisplay(true);
+
+  for (let i = 0; i < 3; i++) {
+    reelWrappers[i].classList.remove('stopped');
+    reelWrappers[i].classList.add('triple-win');
+    setTimeout(() => {
+      reelWrappers[i].classList.remove('triple-win');
+      reelWrappers[i].classList.add('stopped');
+    }, 2200);
+  }
+
+  playTripleSound();
+  showToast(`★ TRIPLE ${person.firstName.toUpperCase()}! +5 PAN GALACTIC GARGLE BLASTERS ★`);
+  statusMsg.textContent = rand(TRIPLE_STATUS)(person.firstName);
+}
+
+// ═══════════════════════════════════════════════════════
 //  WIN EVALUATION
 // ═══════════════════════════════════════════════════════
 function evaluateResults() {
@@ -884,10 +954,16 @@ function evaluateResults() {
     return;
   }
 
+  const triple = state.result.every(p => p.firstName === state.result[0].firstName);
+  if (triple) {
+    setTimeout(() => triggerTriple(state.result[0]), 300);
+    return;
+  }
+
   if (hasCharlie && hasGreg) {
     state.tokens += 5;
     updateTokenDisplay(true);
-    showToast('★ CHARLIE + GREG SYNERGY! +5 APPROVALS ★');
+    showToast('★ CHARLIE + GREG SYNERGY! +5 PAN GALACTIC GARGLE BLASTERS ★');
     statusMsg.textContent = 'Rare co-occurrence detected. Correlation ≠ causation, but the committee will allow it.';
     return;
   }
@@ -895,7 +971,7 @@ function evaluateResults() {
   if (hasCharlie) {
     state.tokens += 1;
     updateTokenDisplay(true);
-    showToast('★ CHARLIE ACQUIRED! +1 APPROVAL ★');
+    showToast('★ CHARLIE ACQUIRED! +1 PAN GALACTIC GARGLE BLASTER ★');
     statusMsg.textContent = rand(IDLE_QUOTES);
     return;
   }
@@ -903,7 +979,7 @@ function evaluateResults() {
   if (hasGreg) {
     state.tokens += 1;
     updateTokenDisplay(true);
-    showToast('★ GREG ACQUIRED! +1 APPROVAL ★');
+    showToast('★ GREG ACQUIRED! +1 PAN GALACTIC GARGLE BLASTER ★');
     statusMsg.textContent = rand(IDLE_QUOTES);
     return;
   }
