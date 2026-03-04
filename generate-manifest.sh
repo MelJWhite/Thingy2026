@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# generate-manifest.sh — scans people/ directory and writes people/manifest.json
+# generate-manifest.sh — scans people/ directory and writes people/manifest.js
 
 set -euo pipefail
 
 PEOPLE_DIR="$(dirname "$0")/people"
-OUTPUT="$PEOPLE_DIR/manifest.json"
+OUTPUT="$PEOPLE_DIR/manifest.js"
 
 if [ ! -d "$PEOPLE_DIR" ]; then
     echo "Error: people/ directory not found" >&2
@@ -21,17 +21,17 @@ if [ ${#images[@]} -eq 0 ]; then
     echo "Warning: no image files found in $PEOPLE_DIR" >&2
 fi
 
-# Write JSON
+# Write JS (works with file:// URLs unlike fetch+JSON)
 {
-    printf '{\n  "images": [\n'
+    printf 'window.PEOPLE_MANIFEST = [\n'
     for i in "${!images[@]}"; do
         if [ $i -lt $(( ${#images[@]} - 1 )) ]; then
-            printf '    "%s",\n' "${images[$i]}"
+            printf '  "%s",\n' "${images[$i]}"
         else
-            printf '    "%s"\n' "${images[$i]}"
+            printf '  "%s"\n' "${images[$i]}"
         fi
     done
-    printf '  ]\n}\n'
+    printf '];\n'
 } > "$OUTPUT"
 
 echo "Written: $OUTPUT (${#images[@]} images)"

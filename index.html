@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Infinite Improbability Drive</title>
+<script src="people/manifest.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -568,11 +569,11 @@ function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 // ═══════════════════════════════════════════════════════
 //  MANIFEST + PEOPLE LOADING
 // ═══════════════════════════════════════════════════════
-async function loadPeople() {
-  const res = await fetch('people/manifest.json');
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const { images } = await res.json();
-  return images.map(filename => {
+function loadPeople() {
+  if (!window.PEOPLE_MANIFEST) {
+    throw new Error('manifest.js not found. Run generate-manifest.sh (or generate-manifest.py), then reload.');
+  }
+  return window.PEOPLE_MANIFEST.map(filename => {
     const base = filename.replace(/\.[^.]+$/, '');
     const parts = base.split('_');
     const firstName = parts[0];
@@ -986,7 +987,7 @@ spinBtn.addEventListener('click', spin);
 async function init() {
   try {
     loadingMsg.textContent = 'Fetching personnel manifests from Magrathea…';
-    PEOPLE = await loadPeople();
+    PEOPLE = loadPeople();
 
     if (PEOPLE.length === 0) {
       throw new Error('No people found in manifest. Add images to people/ and re-run generate-manifest.sh.');
@@ -1010,8 +1011,8 @@ async function init() {
   } catch (err) {
     console.error(err);
     loadingMsg.innerHTML = `<span style="color:#ff4444">ERROR: ${err.message}</span><br><br>
-      <span style="color:#336644">Run <code>./generate-manifest.sh</code> (or <code>python3 generate-manifest.py</code>),<br>
-      then reload this page.</span>`;
+      <span style="color:#336644">Run <code>./generate-manifest.sh</code> (or <code>python3 generate-manifest.py</code>)<br>
+      to create <code>people/manifest.js</code>, then reload this page.</span>`;
   }
 }
 
